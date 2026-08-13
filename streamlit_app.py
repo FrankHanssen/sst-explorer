@@ -9,7 +9,6 @@ import pandas as pd
 import statsmodels.api as sm
 import streamlit as st
 
-from branca.colormap import LinearColormap
 from folium.plugins import Draw
 from scipy import stats
 from streamlit_folium import st_folium
@@ -21,10 +20,249 @@ from streamlit_folium import st_folium
 
 st.set_page_config(
     page_title="Sea Surface Temperature Climate Explorer",
+    page_icon="🌊",
     layout="wide",
 )
 
-st.title("🌊 Sea Surface Temperature Climate Explorer")
+
+# ==========================================================
+# GLOBAL READABILITY
+# ==========================================================
+
+st.markdown(
+    """
+    <style>
+
+    .stApp {
+        font-size: 23px !important;
+    }
+
+    /* ------------------------------------------------------
+       SECTION HEADINGS
+       ------------------------------------------------------ */
+
+    h2 {
+        font-size: 36px !important;
+        line-height: 1.20 !important;
+        font-weight: 700 !important;
+    }
+
+    h3 {
+        font-size: 30px !important;
+        line-height: 1.25 !important;
+        font-weight: 650 !important;
+    }
+
+    /* ------------------------------------------------------
+       BODY TEXT
+       ------------------------------------------------------ */
+
+    .stMarkdown,
+    .stMarkdown p,
+    .stMarkdown li,
+    .stMarkdown span,
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] li,
+    [data-testid="stMarkdownContainer"] span {
+        font-size: 23px !important;
+        line-height: 1.62 !important;
+    }
+
+    /* ------------------------------------------------------
+       CAPTIONS / SMALL TEXT
+       ------------------------------------------------------ */
+
+    [data-testid="stCaptionContainer"],
+    [data-testid="stCaptionContainer"] p,
+    [data-testid="stCaptionContainer"] span,
+    small {
+        font-size: 20px !important;
+        line-height: 1.55 !important;
+    }
+
+    /* ------------------------------------------------------
+       SIDEBAR
+       ------------------------------------------------------ */
+
+    [data-testid="stSidebar"] {
+        font-size: 21px !important;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span {
+        font-size: 21px !important;
+        line-height: 1.50 !important;
+    }
+
+    [data-testid="stSidebar"] h2 {
+        font-size: 30px !important;
+    }
+
+    [data-testid="stSidebar"] h3 {
+        font-size: 26px !important;
+    }
+
+    /* ------------------------------------------------------
+       WIDGETS
+       ------------------------------------------------------ */
+
+    [data-testid="stRadio"] label,
+    [data-testid="stRadio"] p,
+    [data-testid="stRadio"] span,
+    [data-testid="stWidgetLabel"],
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stWidgetLabel"] span {
+        font-size: 21px !important;
+    }
+
+    [data-baseweb="select"],
+    [data-baseweb="select"] *,
+    [data-baseweb="popover"],
+    [data-baseweb="popover"] * {
+        font-size: 21px !important;
+    }
+
+    [data-testid="stSlider"] p,
+    [data-testid="stSlider"] span {
+        font-size: 21px !important;
+    }
+
+    /* ------------------------------------------------------
+       ALERTS
+       ------------------------------------------------------ */
+
+    [data-testid="stAlert"],
+    [data-testid="stAlert"] p,
+    [data-testid="stAlert"] span,
+    [data-testid="stAlert"] div {
+        font-size: 22px !important;
+        line-height: 1.58 !important;
+    }
+
+    /* ------------------------------------------------------
+       METRICS
+       ------------------------------------------------------ */
+
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] p,
+    [data-testid="stMetricLabel"] span,
+    [data-testid="stMetricLabel"] div {
+        font-size: 20px !important;
+        line-height: 1.4 !important;
+    }
+
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] div {
+        font-size: 36px !important;
+        line-height: 1.2 !important;
+    }
+
+    [data-testid="stMetricDelta"] {
+        font-size: 20px !important;
+    }
+
+    /* ------------------------------------------------------
+       EXPANDERS
+       ------------------------------------------------------ */
+
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] summary span {
+        font-size: 22px !important;
+        font-weight: 650 !important;
+    }
+
+    [data-testid="stExpander"] p,
+    [data-testid="stExpander"] li,
+    [data-testid="stExpander"] span {
+        font-size: 21px !important;
+        line-height: 1.62 !important;
+    }
+
+    /* ------------------------------------------------------
+       BUTTONS
+       ------------------------------------------------------ */
+
+    .stButton button,
+    .stButton button p,
+    .stDownloadButton button,
+    .stDownloadButton button p {
+        font-size: 21px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* ------------------------------------------------------
+       SPINNER
+       ------------------------------------------------------ */
+
+    [data-testid="stSpinner"],
+    [data-testid="stSpinner"] p,
+    [data-testid="stSpinner"] span {
+        font-size: 21px !important;
+    }
+
+    /* ------------------------------------------------------
+       CUSTOM MAIN TITLE
+       ------------------------------------------------------ */
+
+    .sst-main-title {
+        font-size: 64px !important;
+        font-weight: 750 !important;
+        line-height: 1.08 !important;
+        letter-spacing: -1.2px !important;
+        margin-top: 0 !important;
+        margin-bottom: 24px !important;
+    }
+
+    @media (max-width: 900px) {
+        .sst-main-title {
+            font-size: 52px !important;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .sst-main-title {
+            font-size: 42px !important;
+        }
+    }
+
+    /* ------------------------------------------------------
+       AUTHOR
+       ------------------------------------------------------ */
+
+    .developer-line {
+        font-size: 20px !important;
+        line-height: 1.5 !important;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        color: #555;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ==========================================================
+# MAIN TITLE
+# ==========================================================
+
+st.markdown(
+    """
+    <div class="sst-main-title">
+        🌊 Sea Surface Temperature Climate Explorer
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ==========================================================
+# INTRODUCTION
+# ==========================================================
 
 st.write(
     """
@@ -39,12 +277,33 @@ time series and estimates the long-term trend.
 
 
 # ==========================================================
+# SST ANOMALY EXPLANATION
+# ==========================================================
+
+with st.expander(
+    "🌡️ What is an SST anomaly?",
+    expanded=False,
+):
+
+    st.markdown(
+        """
+**SST** stands for **sea surface temperature**. An **SST anomaly** shows how much warmer or colder the ocean surface is than the long-term average for the same place and time of year.  
+For example, **+1.0 °C** means 1.0 °C warmer than average and **−1.0 °C** means 1.0 °C colder; it shows the **difference from typical conditions**, not the actual temperature.
+"""
+    )
+
+
+# ==========================================================
 # EARTH ENGINE
 # ==========================================================
 
-ee.Initialize(project="p-312432-birdwake")
+ee.Initialize(
+    project="p-312432-birdwake"
+)
 
-OISST = ee.ImageCollection("NOAA/CDR/OISST/V2_1")
+OISST = ee.ImageCollection(
+    "NOAA/CDR/OISST/V2_1"
+)
 
 
 # ==========================================================
@@ -71,32 +330,74 @@ if "selected_polygon" not in st.session_state:
 # SIDEBAR
 # ==========================================================
 
-st.sidebar.header("Analysis settings")
+st.sidebar.header(
+    "Analysis settings"
+)
 
 analysis_mode = st.sidebar.radio(
     "Analysis mode",
-    ["Point", "Polygon"],
+    [
+        "Point",
+        "Polygon",
+    ],
 )
 
 year = st.sidebar.slider(
     "Map year",
     min_value=1982,
-    max_value=2025,
-    value=2024,
+    max_value=2026,
+    value=2026,
 )
+
+
+# ----------------------------------------------------------
+# 2026 is currently available through June
+# ----------------------------------------------------------
+
+if year == 2026:
+
+    available_months = list(
+        range(1, 7)
+    )
+
+    default_month_index = 5
+
+else:
+
+    available_months = list(
+        range(1, 13)
+    )
+
+    default_month_index = 6
+
 
 month = st.sidebar.selectbox(
     "Month",
-    options=list(range(1, 13)),
-    index=6,
+    options=available_months,
+    index=default_month_index,
     format_func=lambda m: calendar.month_name[m],
 )
 
-if st.sidebar.button("Clear selection"):
+
+# ----------------------------------------------------------
+# Historical analysis period
+#
+# January–June: include 2026
+# July–December: latest complete observation is 2025
+# ----------------------------------------------------------
+
+if month <= 6:
+    analysis_end_year = 2026
+else:
+    analysis_end_year = 2025
+
+
+if st.sidebar.button(
+    "Clear selection"
+):
 
     if analysis_mode == "Point":
         st.session_state.selected_point = None
-
     else:
         st.session_state.selected_polygon = None
 
@@ -114,12 +415,15 @@ start_date = datetime.date(
 )
 
 if month == 12:
+
     end_date = datetime.date(
         year + 1,
         1,
         1,
     )
+
 else:
+
     end_date = datetime.date(
         year,
         month + 1,
@@ -187,7 +491,71 @@ m = folium.Map(
     ],
     zoom_start=st.session_state.map_zoom,
     tiles="CartoDB positron",
+    control_scale=True,
 )
+
+
+# ==========================================================
+# FOLIUM / LEAFLET READABILITY
+# ==========================================================
+
+map_css = """
+<style>
+
+/* Layer control */
+.leaflet-control-layers {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+}
+
+.leaflet-control-layers label,
+.leaflet-control-layers span {
+    font-size: 18px !important;
+}
+
+/* Map scale */
+.leaflet-control-scale-line {
+    font-size: 15px !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution,
+.leaflet-control-attribution a {
+    font-size: 13px !important;
+}
+
+/* Tooltips */
+.leaflet-tooltip,
+.leaflet-popup-content {
+    font-size: 18px !important;
+    line-height: 1.45 !important;
+}
+
+/* Drawing tools */
+.leaflet-draw-tooltip,
+.leaflet-draw-tooltip-single,
+.leaflet-draw-actions a {
+    font-size: 17px !important;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom a {
+    font-size: 24px !important;
+}
+
+</style>
+"""
+
+m.get_root().html.add_child(
+    folium.Element(
+        map_css
+    )
+)
+
+
+# ==========================================================
+# EARTH ENGINE MAP LAYER
+# ==========================================================
 
 folium.TileLayer(
     tiles=tile_url,
@@ -201,9 +569,9 @@ folium.TileLayer(
 ).add_to(m)
 
 
-# ----------------------------------------------------------
-# Persist previous selection visually
-# ----------------------------------------------------------
+# ==========================================================
+# PERSIST PREVIOUS POINT
+# ==========================================================
 
 if (
     analysis_mode == "Point"
@@ -217,12 +585,17 @@ if (
             p["lat"],
             p["lng"],
         ],
-        radius=6,
-        weight=2,
+        radius=7,
+        weight=3,
         fill=True,
+        fill_opacity=0.8,
         tooltip="Selected point",
     ).add_to(m)
 
+
+# ==========================================================
+# PERSIST PREVIOUS POLYGON
+# ==========================================================
 
 if (
     analysis_mode == "Polygon"
@@ -239,9 +612,9 @@ if (
     ).add_to(m)
 
 
-# ----------------------------------------------------------
-# Polygon drawing tools
-# ----------------------------------------------------------
+# ==========================================================
+# POLYGON DRAWING TOOLS
+# ==========================================================
 
 if analysis_mode == "Polygon":
 
@@ -263,25 +636,121 @@ if analysis_mode == "Polygon":
     ).add_to(m)
 
 
-# ----------------------------------------------------------
-# Color bar
-# ----------------------------------------------------------
+# ==========================================================
+# CUSTOM SST COLOR BAR — LOWER RIGHT
+# ==========================================================
 
-colorbar = LinearColormap(
-    colors=palette,
-    vmin=-3,
-    vmax=3,
+legend_html = """
+<div style="
+    position: fixed;
+    bottom: 42px;
+    right: 24px;
+    z-index: 9999;
+
+    width: 370px;
+
+    padding: 12px 14px 11px 14px;
+
+    background: rgba(255, 255, 255, 0.96);
+
+    border: 1px solid rgba(0, 0, 0, 0.22);
+    border-radius: 7px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+
+    font-family: Arial, Helvetica, sans-serif;
+">
+
+    <div style="
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #222;
+        margin-bottom: 8px;
+    ">
+        SST anomaly (°C)
+    </div>
+
+    <div style="
+        width: 100%;
+        height: 20px;
+
+        border: 1px solid rgba(0, 0, 0, 0.28);
+        border-radius: 2px;
+
+        background: linear-gradient(
+            to right,
+            #313695 0%,
+            #4575b4 10%,
+            #74add1 20%,
+            #abd9e9 30%,
+            #e0f3f8 40%,
+            #ffffbf 50%,
+            #fee090 60%,
+            #fdae61 70%,
+            #f46d43 80%,
+            #d73027 90%,
+            #a50026 100%
+        );
+    ">
+    </div>
+
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        width: 100%;
+        margin-top: 6px;
+
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+
+        color: #222;
+    ">
+        <span>−3</span>
+        <span>−2</span>
+        <span>−1</span>
+        <span>0</span>
+        <span>+1</span>
+        <span>+2</span>
+        <span>+3</span>
+    </div>
+
+    <div style="
+        display: flex;
+        justify-content: space-between;
+
+        margin-top: 7px;
+
+        font-size: 13px;
+        font-weight: 500;
+        color: #555;
+    ">
+        <span>Colder than average</span>
+        <span>Warmer than average</span>
+    </div>
+
+</div>
+"""
+
+m.get_root().html.add_child(
+    folium.Element(
+        legend_html
+    )
 )
 
-colorbar.caption = "SST anomaly (°C)"
 
-colorbar.add_to(m)
+# ==========================================================
+# LAYER CONTROL
+# ==========================================================
 
 folium.LayerControl().add_to(m)
 
 
 # ==========================================================
-# MAP INSTRUCTIONS
+# MAP HEADING
 # ==========================================================
 
 st.subheader(
@@ -289,24 +758,11 @@ st.subheader(
     f"{calendar.month_name[month]} {year}"
 )
 
-st.caption(
-    "Blue indicates colder-than-normal conditions. "
-    "Red indicates warmer-than-normal conditions."
+st.write(
+    "Blue areas are colder than the long-term average, "
+    "while red areas are warmer than the long-term average. "
+    "The color scale shows the SST anomaly in °C."
 )
-
-if analysis_mode == "Point":
-
-    st.info(
-        "Click an ocean location to analyse its "
-        "1982–2025 climate history."
-    )
-
-else:
-
-    st.info(
-        "Use the polygon or rectangle tool in the upper-left "
-        "corner of the map to define a study region."
-    )
 
 
 # ==========================================================
@@ -327,17 +783,29 @@ map_data = st_folium(
 
 if map_data:
 
-    center = map_data.get("center")
+    center = map_data.get(
+        "center"
+    )
 
     if center:
 
-        st.session_state.map_lat = center["lat"]
-        st.session_state.map_lon = center["lng"]
+        st.session_state.map_lat = (
+            center["lat"]
+        )
 
-    zoom = map_data.get("zoom")
+        st.session_state.map_lon = (
+            center["lng"]
+        )
+
+    zoom = map_data.get(
+        "zoom"
+    )
 
     if zoom is not None:
-        st.session_state.map_zoom = zoom
+
+        st.session_state.map_zoom = (
+            zoom
+        )
 
 
 # ==========================================================
@@ -394,7 +862,10 @@ def monthly_image_for_year(y):
 
     return (
         OISST
-        .filterDate(start, end)
+        .filterDate(
+            start,
+            end,
+        )
         .select("anom")
         .mean()
         .multiply(0.01)
@@ -419,7 +890,9 @@ def area_weighted_value(
     geometry,
 ):
 
-    pixel_area = ee.Image.pixelArea()
+    pixel_area = (
+        ee.Image.pixelArea()
+    )
 
     valid_area = (
         pixel_area
@@ -430,7 +903,9 @@ def area_weighted_value(
 
     weighted = (
         image
-        .multiply(pixel_area)
+        .multiply(
+            pixel_area
+        )
     )
 
     numerator = (
@@ -463,11 +938,19 @@ def area_weighted_value(
             None,
         ),
         None,
-        ee.Number(numerator).divide(
-            ee.Number(denominator)
+        ee.Number(
+            numerator
+        ).divide(
+            ee.Number(
+                denominator
+            )
         ),
     )
 
+
+# ==========================================================
+# BUILD HISTORICAL TIME SERIES
+# ==========================================================
 
 def build_time_series(
     geometry,
@@ -476,29 +959,38 @@ def build_time_series(
 
     years = ee.List.sequence(
         1982,
-        2025,
+        analysis_end_year,
     )
 
     def make_feature(y):
 
-        y = ee.Number(y).toInt()
+        y = (
+            ee.Number(y)
+            .toInt()
+        )
 
-        image = monthly_image_for_year(
-            y
+        image = (
+            monthly_image_for_year(
+                y
+            )
         )
 
         if polygon_mode:
 
-            value = area_weighted_value(
-                image,
-                geometry,
+            value = (
+                area_weighted_value(
+                    image,
+                    geometry,
+                )
             )
 
         else:
 
-            value = point_value(
-                image,
-                geometry,
+            value = (
+                point_value(
+                    image,
+                    geometry,
+                )
             )
 
         return ee.Feature(
@@ -510,40 +1002,65 @@ def build_time_series(
         )
 
     fc = ee.FeatureCollection(
-        years.map(make_feature)
+        years.map(
+            make_feature
+        )
     )
 
     data = fc.getInfo()
 
     rows = []
 
-    for feature in data["features"]:
+    for feature in data[
+        "features"
+    ]:
 
-        props = feature["properties"]
+        props = feature[
+            "properties"
+        ]
 
-        if props["anomaly"] is not None:
+        if props[
+            "anomaly"
+        ] is not None:
 
             rows.append(
                 {
-                    "Year": props["year"],
-                    "SST anomaly": props["anomaly"],
+                    "Year":
+                        props["year"],
+
+                    "SST anomaly":
+                        props["anomaly"],
                 }
             )
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(
+        rows
+    )
 
+
+# ==========================================================
+# TREND ANALYSIS
+# ==========================================================
 
 def analyse_trend(df):
 
-    x = df[
-        "Year"
-    ].to_numpy(dtype=float)
+    x = (
+        df["Year"]
+        .to_numpy(
+            dtype=float
+        )
+    )
 
-    y = df[
-        "SST anomaly"
-    ].to_numpy(dtype=float)
+    y = (
+        df["SST anomaly"]
+        .to_numpy(
+            dtype=float
+        )
+    )
 
-    X = sm.add_constant(x)
+    X = sm.add_constant(
+        x
+    )
 
     ols = sm.OLS(
         y,
@@ -563,18 +1080,28 @@ def analyse_trend(df):
         ),
     )
 
-    hac = ols.get_robustcov_results(
-        cov_type="HAC",
-        maxlags=hac_lags,
+    hac = (
+        ols
+        .get_robustcov_results(
+            cov_type="HAC",
+            maxlags=hac_lags,
+        )
     )
 
-    slope = hac.params[1]
+    slope = (
+        hac.params[1]
+    )
 
-    p_value = hac.pvalues[1]
+    p_value = (
+        hac.pvalues[1]
+    )
 
-    ci = hac.conf_int(
-        alpha=0.05
-    )[1]
+    ci = (
+        hac
+        .conf_int(
+            alpha=0.05
+        )[1]
+    )
 
     trend_decade = (
         slope * 10
@@ -588,52 +1115,93 @@ def analyse_trend(df):
         ci[1] * 10
     )
 
-    residuals = ols.resid
+    residuals = (
+        ols.resid
+    )
 
-    if len(residuals) > 2:
+    if len(
+        residuals
+    ) > 2:
 
-        lag1_r = np.corrcoef(
-            residuals[:-1],
-            residuals[1:],
-        )[0, 1]
+        lag1_r = (
+            np.corrcoef(
+                residuals[:-1],
+                residuals[1:],
+            )[0, 1]
+        )
 
     else:
 
         lag1_r = np.nan
 
-    kendall = stats.kendalltau(
-        x,
-        y,
-        nan_policy="omit",
+    kendall = (
+        stats.kendalltau(
+            x,
+            y,
+            nan_policy="omit",
+        )
     )
 
-    sen = stats.theilslopes(
-        y,
-        x,
-        alpha=0.95,
+    sen = (
+        stats.theilslopes(
+            y,
+            x,
+            alpha=0.95,
+        )
     )
 
     result = {
-        "trend_decade": trend_decade,
-        "ci_low": ci_low,
-        "ci_high": ci_high,
-        "p_value": p_value,
-        "lag1_r": lag1_r,
-        "kendall_tau": kendall.statistic,
-        "kendall_p": kendall.pvalue,
-        "sen_decade": sen.slope * 10,
-        "sen_low": sen.low_slope * 10,
-        "sen_high": sen.high_slope * 10,
-        "hac_lags": hac_lags,
+        "trend_decade":
+            trend_decade,
+
+        "ci_low":
+            ci_low,
+
+        "ci_high":
+            ci_high,
+
+        "p_value":
+            p_value,
+
+        "lag1_r":
+            lag1_r,
+
+        "kendall_tau":
+            kendall.statistic,
+
+        "kendall_p":
+            kendall.pvalue,
+
+        "sen_decade":
+            sen.slope * 10,
+
+        "sen_low":
+            sen.low_slope * 10,
+
+        "sen_high":
+            sen.high_slope * 10,
+
+        "hac_lags":
+            hac_lags,
     }
 
-    df["Linear trend"] = (
+    df[
+        "Linear trend"
+    ] = (
         ols.params[0]
-        + ols.params[1] * x
+        + ols.params[1]
+        * x
     )
 
-    return result, df
+    return (
+        result,
+        df,
+    )
 
+
+# ==========================================================
+# PLAIN-LANGUAGE INTERPRETATION
+# ==========================================================
 
 def plain_language_interpretation(
     result,
@@ -664,25 +1232,21 @@ def plain_language_interpretation(
     ]
 
     if trend > 0:
-
         direction = "warming"
-
     else:
-
         direction = "cooling"
 
-    magnitude = abs(trend)
+    magnitude = abs(
+        trend
+    )
 
     if magnitude < 0.1:
-
         strength = "a small"
 
     elif magnitude < 0.3:
-
         strength = "a moderate"
 
     else:
-
         strength = "a relatively strong"
 
     if p < 0.05:
@@ -703,8 +1267,13 @@ def plain_language_interpretation(
         )
 
     robust_agreement = (
-        np.sign(trend)
-        == np.sign(sen)
+        np.sign(
+            trend
+        )
+        ==
+        np.sign(
+            sen
+        )
     )
 
     if (
@@ -719,7 +1288,10 @@ def plain_language_interpretation(
             "in the direction of change."
         )
 
-    elif p < 0.05 or kendall_p < 0.05:
+    elif (
+        p < 0.05
+        or kendall_p < 0.05
+    ):
 
         agreement = (
             "The different statistical methods do not agree "
@@ -741,7 +1313,8 @@ def plain_language_interpretation(
         f"**{magnitude:.2f} °C per decade** since 1982. "
         f"The estimated 95% range is "
         f"**{low:+.2f} to {high:+.2f} °C per decade**. "
-        f"{evidence} {agreement}"
+        f"{evidence} "
+        f"{agreement}"
     )
 
 
@@ -756,12 +1329,19 @@ current_value = None
 area_km2 = None
 
 
+# ==========================================================
+# POINT MODE
+# ==========================================================
+
 if (
     analysis_mode == "Point"
     and st.session_state.selected_point
 ):
 
-    p = st.session_state.selected_point
+    p = (
+        st.session_state
+        .selected_point
+    )
 
     geometry = ee.Geometry.Point(
         [
@@ -775,11 +1355,18 @@ if (
         f"{p['lng']:.3f}"
     )
 
-    current_value = point_value(
-        sst_anomaly,
-        geometry,
-    ).getInfo()
+    current_value = (
+        point_value(
+            sst_anomaly,
+            geometry,
+        )
+        .getInfo()
+    )
 
+
+# ==========================================================
+# POLYGON MODE
+# ==========================================================
 
 elif (
     analysis_mode == "Polygon"
@@ -789,13 +1376,18 @@ elif (
     polygon_mode = True
 
     geometry = ee.Geometry(
-        st.session_state.selected_polygon
+        st.session_state
+        .selected_polygon
     )
 
     area_km2 = (
         geometry
-        .area(maxError=1000)
-        .divide(1_000_000)
+        .area(
+            maxError=1000
+        )
+        .divide(
+            1_000_000
+        )
         .getInfo()
     )
 
@@ -803,12 +1395,21 @@ elif (
         f"{area_km2:,.0f} km² region"
     )
 
-    current_value = ee.Number(
-        area_weighted_value(
-            sst_anomaly,
-            geometry,
+    try:
+
+        current_value = (
+            ee.Number(
+                area_weighted_value(
+                    sst_anomaly,
+                    geometry,
+                )
+            )
+            .getInfo()
         )
-    ).getInfo()
+
+    except Exception:
+
+        current_value = None
 
 
 # ==========================================================
@@ -819,9 +1420,15 @@ if geometry is not None:
 
     st.divider()
 
-    st.subheader("Selected area")
+    st.subheader(
+        "Selected area"
+    )
 
-    col1, col2 = st.columns(2)
+    col1, col2 = (
+        st.columns(
+            2
+        )
+    )
 
     with col1:
 
@@ -851,8 +1458,10 @@ if geometry is not None:
         else:
 
             st.metric(
-                f"Mean SST anomaly — "
-                f"{calendar.month_name[month]} {year}",
+                (
+                    "Mean SST anomaly — "
+                    f"{calendar.month_name[month]} {year}"
+                ),
                 f"{current_value:+.2f} °C",
             )
 
@@ -862,19 +1471,24 @@ if geometry is not None:
     # ======================================================
 
     with st.spinner(
-        "Earth Engine is calculating the 1982–2025 climate record..."
+        f"Earth Engine is calculating the "
+        f"1982–{analysis_end_year} climate record..."
     ):
 
-        df = build_time_series(
-            geometry,
-            polygon_mode,
+        df = (
+            build_time_series(
+                geometry,
+                polygon_mode,
+            )
         )
 
 
     if len(df) >= 5:
 
-        result, df = analyse_trend(
-            df
+        result, df = (
+            analyse_trend(
+                df
+            )
         )
 
 
@@ -892,10 +1506,10 @@ if geometry is not None:
             )
         )
 
-        st.caption(
-            "This is a statistical interpretation of the observed "
-            "1982–2025 record. It does not by itself establish "
-            "the physical cause of the change."
+        st.write(
+            f"This is a statistical interpretation of the observed "
+            f"1982–{analysis_end_year} record. It does not by itself "
+            f"establish the physical cause of the change."
         )
 
 
@@ -907,7 +1521,11 @@ if geometry is not None:
             "Climate trend"
         )
 
-        metric1, metric2, metric3 = st.columns(3)
+        metric1, metric2, metric3 = (
+            st.columns(
+                3
+            )
+        )
 
         with metric1:
 
@@ -931,9 +1549,10 @@ if geometry is not None:
 
         with metric3:
 
-            if result[
-                "p_value"
-            ] < 0.05:
+            if (
+                result["p_value"]
+                < 0.05
+            ):
 
                 evidence_text = (
                     "Strong evidence"
@@ -956,12 +1575,15 @@ if geometry is not None:
         # ==================================================
 
         st.subheader(
-            f"{calendar.month_name[month]} SST anomaly history"
+            f"{calendar.month_name[month]} "
+            "SST anomaly history"
         )
 
         chart_df = (
             df
-            .set_index("Year")[
+            .set_index(
+                "Year"
+            )[
                 [
                     "SST anomaly",
                     "Linear trend",
@@ -973,7 +1595,7 @@ if geometry is not None:
             chart_df
         )
 
-        st.caption(
+        st.write(
             "The fluctuating line shows individual years. "
             "The straight line shows the fitted long-term trend."
         )
@@ -993,15 +1615,20 @@ if geometry is not None:
             .to_csv(
                 index=False
             )
-            .encode("utf-8")
+            .encode(
+                "utf-8"
+            )
         )
 
         st.download_button(
-            label="⬇️ Download time series as CSV",
+            label=(
+                "⬇️ Download time series as CSV"
+            ),
             data=csv_data,
             file_name=(
-                f"oisst_{calendar.month_name[month].lower()}_"
-                "1982_2025.csv"
+                f"oisst_"
+                f"{calendar.month_name[month].lower()}_"
+                f"1982_{analysis_end_year}.csv"
             ),
             mime="text/csv",
         )
@@ -1015,7 +1642,11 @@ if geometry is not None:
             "Robust statistical checks"
         ):
 
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = (
+                st.columns(
+                    3
+                )
+            )
 
             with col1:
 
@@ -1164,25 +1795,34 @@ one statistic alone.
         ):
 
             st.write(
-                f"Observations used: **{len(df)} annual values**"
+                f"Observations used: "
+                f"**{len(df)} annual values**"
             )
 
             st.write(
-                f"HAC lag parameter: **{result['hac_lags']}**"
+                f"Analysis period: "
+                f"**1982–{analysis_end_year}**"
+            )
+
+            st.write(
+                f"HAC lag parameter: "
+                f"**{result['hac_lags']}**"
             )
 
             if polygon_mode:
 
                 st.markdown(
                     """
-**Spatial averaging**
+### Spatial averaging
 
-The polygon analysis uses an area-weighted mean.
+The polygon analysis uses an **area-weighted mean**.
 
 Each valid OISST pixel is weighted according to its physical
-surface area before calculating the regional mean. This is
-important at high latitudes because geographic raster cells
-do not all represent exactly the same surface area.
+surface area before calculating the regional mean.
+
+This is particularly important at high latitudes because
+geographic raster cells do not all represent exactly the
+same physical surface area.
 """
                 )
 
@@ -1190,7 +1830,7 @@ do not all represent exactly the same surface area.
 
                 st.markdown(
                     """
-**Point analysis**
+### Point analysis
 
 The point result represents the OISST raster value at the
 selected geographic location at approximately the native
@@ -1200,20 +1840,23 @@ scale of the dataset.
 
             st.markdown(
                 """
-**Statistical scope**
+### Statistical scope
 
 These calculations describe statistical change in the
 selected monthly SST anomaly series.
 
 They do not by themselves identify the physical cause of
-the observed change, and they should not be interpreted as
-a complete climate-attribution analysis.
+the observed change and should not be interpreted as a
+complete climate-attribution analysis.
 
 The Kendall result is used here as a robust monotonic-trend
-cross-check; the HAC-adjusted regression is the primary
-autocorrelation-aware uncertainty estimate in this app.
+cross-check.
+
+The HAC-adjusted regression is the primary
+autocorrelation-aware uncertainty estimate used in this app.
 """
             )
+
 
     else:
 
@@ -1223,20 +1866,23 @@ autocorrelation-aware uncertainty estimate in this app.
         )
 
 
-else:
-
-    st.caption(
-        "Select a point or polygon on the map to begin the analysis."
-    )
-
-
 # ==========================================================
-# DATA SOURCE
+# DATA SOURCE / AUTHOR
 # ==========================================================
 
 st.divider()
 
-st.caption(
-    "Data source: NOAA OISST V2.1 via Google Earth Engine. "
-    "Analysis period: 1982–2025."
+st.write(
+    "**Data source:** NOAA OISST V2.1 via Google Earth Engine.  \n"
+    f"**Analysis period:** 1982–{analysis_end_year} "
+    f"for {calendar.month_name[month]}."
+)
+
+st.markdown(
+    """
+    <div class="developer-line">
+        Developed by <strong>Frank Hanssen</strong>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
