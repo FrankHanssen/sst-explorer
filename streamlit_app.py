@@ -22,7 +22,7 @@ from streamlit_folium import st_folium
 # ==========================================================
 
 st.set_page_config(
-    page_title="Sea suface temperature change explorer",
+    page_title="Sea surface temperature change explorer",
     page_icon="🌊",
     layout="wide",
 )
@@ -253,8 +253,6 @@ st.markdown(
 # HEADER: NINA LOGO + MAIN TITLE
 # ==========================================================
 
-from pathlib import Path
-
 logo_path = Path(__file__).parent / "assets" / "nina_logo.png"
 
 # NINA logo
@@ -353,7 +351,7 @@ analysis_mode = st.sidebar.radio(
 )
 
 year = st.sidebar.slider(
-    "Map year",
+    "End year",
     min_value=1982,
     max_value=2026,
     value=2026,
@@ -378,7 +376,7 @@ else:
         range(1, 13)
     )
 
-    default_month_index = 6
+    default_month_index = 5
 
 
 month = st.sidebar.selectbox(
@@ -401,6 +399,15 @@ if month <= 6:
 else:
     analysis_end_year = 2025
 
+if month <= 6:
+    analysis_end_year = 2026
+else:
+    analysis_end_year = 2025
+
+effective_end_year = min(
+    year,
+    analysis_end_year,
+)
 
 if st.sidebar.button(
     "Clear selection"
@@ -967,9 +974,14 @@ def build_time_series(
     polygon_mode,
 ):
 
+    chart_end_year = min(
+        year,
+        analysis_end_year,
+    )
+
     years = ee.List.sequence(
         1982,
-        analysis_end_year,
+        chart_end_year,
     )
 
     def make_feature(y):
@@ -1021,25 +1033,18 @@ def build_time_series(
 
     rows = []
 
-    for feature in data[
-        "features"
-    ]:
+    for feature in data["features"]:
 
-        props = feature[
-            "properties"
-        ]
+        props = feature["properties"]
 
-        if props[
-            "anomaly"
-        ] is not None:
+        anomaly = props.get("anomaly")
+
+        if anomaly is not None:
 
             rows.append(
                 {
-                    "Year":
-                        props["year"],
-
-                    "SST anomaly":
-                        props["anomaly"],
+                    "Year": props["year"],
+                    "SST anomaly": anomaly,
                 }
             )
 
@@ -1195,12 +1200,47 @@ def analyse_trend(df):
             hac_lags,
     }
 
-    df[
-        "Linear trend"
-    ] = (
+        # Fitted linear trend
+    fitted = (
         ols.params[0]
-        + ols.params[1]
-        * x
+        + ols.params[1] * x
+    )
+
+    df["Linear trend"] = fitted
+
+    # ------------------------------------------------------
+    # HAC-ADJUSTED 95% CONFIDENCE BAND
+    # ------------------------------------------------------
+
+    # Robust covariance matrix for intercept and slope
+    cov = hac.cov_params()
+
+    # Design matrix for each year
+    X_pred = sm.add_constant(x)
+
+    # Standard error of the fitted trend at each year
+    fit_se = np.sqrt(
+        np.einsum(
+            "ij,jk,ik->i",
+            X_pred,
+            cov,
+            X_pred,
+        )
+    )
+
+    # 95% critical value
+    critical = stats.t.ppf(
+        0.975,
+        df=hac.df_resid,
+    )
+
+    # Lower and upper confidence limits
+    df["Trend CI low"] = (
+        fitted - critical * fit_se
+    )
+
+    df["Trend CI high"] = (
+        fitted + critical * fit_se
     )
 
     return (
@@ -1481,9 +1521,9 @@ if geometry is not None:
     # ======================================================
 
     with st.spinner(
-        f"Earth Engine is calculating the "
-        f"1982–{analysis_end_year} climate record..."
-        ):
+    f"Earth Engine is calculating the "
+    f"1982–{min(year, analysis_end_year)} climate record..."
+    ):
 
         df = (
             build_time_series(
@@ -1580,7 +1620,7 @@ if geometry is not None:
             )
 
 
-                # ==================================================
+        # ==================================================
         # CHART
         # ==================================================
 
@@ -1602,7 +1642,7 @@ if geometry is not None:
             value_name="Temperature anomaly",
         )
 
-        chart = (
+        line_chart = (
             alt.Chart(chart_data)
             .mark_line()
             .encode(
@@ -1655,6 +1695,43 @@ if geometry is not None:
             )
         )
 
+        confidence_band = (
+            alt.Chart(df)
+            .mark_area(
+                opacity=0.18
+            )
+            .encode(
+                x=alt.X(
+                    "Year:Q",
+                    axis=alt.Axis(
+                        format="d",
+                        tickCount=8,
+                        labelFontSize=20,
+                        titleFontSize=20,
+                        titlePadding=12,
+                    ),
+                    title="Year",
+                ),
+                y=alt.Y(
+                    "Trend CI low:Q",
+                    title="SST anomaly (°C)",
+                    axis=alt.Axis(
+                        labelFontSize=20,
+                        titleFontSize=20,
+                        titlePadding=12,
+                    ),
+                ),
+                y2="Trend CI high:Q",
+            )
+        )
+
+        chart = (
+            confidence_band
+            + line_chart
+        ).properties(
+            height=450
+        )
+
         st.altair_chart(
             chart,
             width="stretch",
@@ -1662,7 +1739,9 @@ if geometry is not None:
 
         st.write(
             "The fluctuating line shows individual years. "
-            "The straight line shows the fitted long-term trend."
+            "The straight line shows the fitted long-term trend. "
+            "The shaded area shows the HAC-adjusted 95% confidence band "
+            "around the estimated trend."
         )
 
 
@@ -1777,7 +1856,7 @@ over the period analysed.
 
 ---
 
-### 95% uncertainty range
+### 95% uncertainty range for the trend
 
 No trend estimate is exact.
 
@@ -1794,6 +1873,25 @@ within approximately that range.
 If the interval crosses **zero**, the data do not provide
 strong evidence that the long-term trend differs from no
 change.
+
+---
+
+### Shaded 95% confidence band
+
+The shaded band around the fitted trend line shows the uncertainty
+in the estimated long-term trend through time.
+
+A narrower band indicates that the position of the fitted trend is
+estimated more precisely, while a wider band indicates greater
+uncertainty.
+
+This band is calculated using the same HAC / Newey–West adjustment
+used for the trend uncertainty reported above. This helps account
+for temporal dependence between observations from neighbouring years.
+
+The band represents uncertainty in the **estimated mean trend**, not
+the expected range of individual annual SST anomalies. Individual
+years can therefore fall well outside the shaded band.
 
 ---
 
@@ -1939,7 +2037,7 @@ st.divider()
 
 st.write(
     "**Data source:** NOAA OISST V2.1 via Google Earth Engine.  \n"
-    f"**Analysis period:** 1982–{analysis_end_year} "
+    f"**Analysis period:** 1982–{effective_end_year} "
     f"for {calendar.month_name[month]}."
 )
 
