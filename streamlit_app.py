@@ -4,6 +4,7 @@ import math
 
 from pathlib import Path
 
+import altair as alt
 import ee
 import folium
 import numpy as np
@@ -1482,14 +1483,14 @@ if geometry is not None:
     with st.spinner(
         f"Earth Engine is calculating the "
         f"1982–{analysis_end_year} climate record..."
-    ):
+        ):
 
         df = (
             build_time_series(
                 geometry,
                 polygon_mode,
+                )
             )
-        )
 
 
     if len(df) >= 5:
@@ -1579,7 +1580,7 @@ if geometry is not None:
             )
 
 
-        # ==================================================
+                # ==================================================
         # CHART
         # ==================================================
 
@@ -1588,20 +1589,75 @@ if geometry is not None:
             "SST anomaly history"
         )
 
-        chart_df = (
-            df
-            .set_index(
-                "Year"
-            )[
-                [
-                    "SST anomaly",
-                    "Linear trend",
-                ]
-            ]
+        # Make sure years are integers
+        df["Year"] = df["Year"].astype(int)
+
+        chart_data = df.melt(
+            id_vars="Year",
+            value_vars=[
+                "SST anomaly",
+                "Linear trend",
+            ],
+            var_name="Series",
+            value_name="Temperature anomaly",
         )
 
-        st.line_chart(
-            chart_df
+        chart = (
+            alt.Chart(chart_data)
+            .mark_line()
+            .encode(
+                x=alt.X(
+        "Year:Q",
+        title="Year",
+        axis=alt.Axis(
+            format="d",
+            tickCount=8,
+            labelFontSize=20,
+            titleFontSize=20,
+            titlePadding=12,
+            ),
+        ),
+        y=alt.Y(
+        "Temperature anomaly:Q",
+        title="SST anomaly (°C)",
+            axis=alt.Axis(
+            labelFontSize=20,
+            titleFontSize=20,
+            titlePadding=12,
+            ),
+        ),
+        color=alt.Color(
+        "Series:N",
+        title=None,
+        legend=alt.Legend(
+            labelFontSize=20,
+            ),
+        ),
+                tooltip=[
+                    alt.Tooltip(
+                        "Year:Q",
+                        title="Year",
+                        format="d",
+                    ),
+                    alt.Tooltip(
+                        "Temperature anomaly:Q",
+                        title="SST anomaly",
+                        format=".2f",
+                    ),
+                    alt.Tooltip(
+                        "Series:N",
+                        title="Series",
+                    ),
+                ],
+            )
+            .properties(
+                height=450
+            )
+        )
+
+        st.altair_chart(
+            chart,
+            width="stretch",
         )
 
         st.write(
