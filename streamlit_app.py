@@ -2,6 +2,8 @@ import calendar
 import datetime
 import math
 
+from pathlib import Path
+
 import ee
 import folium
 import numpy as np
@@ -208,12 +210,12 @@ st.markdown(
        ------------------------------------------------------ */
 
     .sst-main-title {
-        font-size: 64px !important;
-        font-weight: 750 !important;
-        line-height: 1.08 !important;
-        letter-spacing: -1.2px !important;
-        margin-top: 0 !important;
-        margin-bottom: 24px !important;
+        font-size: 75px !important;
+        font-weight: 700 !important;
+        line-height: 1.0;
+        white-space: nowrap;
+        position: relative;
+        top: 26px;
     }
 
     @media (max-width: 900px) {
@@ -247,18 +249,31 @@ st.markdown(
 
 
 # ==========================================================
-# MAIN TITLE
+# HEADER: NINA LOGO + MAIN TITLE
 # ==========================================================
 
-st.markdown(
-    """
-    <div class="sst-main-title">
-        🌊 Sea surface temperature change explorer
-    </div>
-    """,
-    unsafe_allow_html=True,
+from pathlib import Path
+
+logo_path = Path(__file__).parent / "assets" / "nina_logo.png"
+
+logo_col, title_col = st.columns(
+    [0.9, 7],
+    gap="small",
+    vertical_alignment="center"
 )
 
+with logo_col:
+    st.image(str(logo_path), width=290)
+
+with title_col:
+    st.markdown(
+        """
+        <div class="sst-main-title">
+            🌊 Sea surface temperature change explorer
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # ==========================================================
 # INTRODUCTION
