@@ -19,7 +19,7 @@ from streamlit_folium import st_folium
 # ==========================================================
 
 st.set_page_config(
-    page_title="Sea Surface Temperature Climate Explorer",
+    page_title="Sea suface temperature change explorer",
     page_icon="🌊",
     layout="wide",
 )
@@ -253,7 +253,7 @@ st.markdown(
 st.markdown(
     """
     <div class="sst-main-title">
-        🌊 Sea Surface Temperature Climate Explorer
+        🌊 Sea surface temperature change explorer
     </div>
     """,
     unsafe_allow_html=True,
