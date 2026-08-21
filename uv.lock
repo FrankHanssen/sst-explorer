@@ -330,7 +330,7 @@ wheels = [
 
 [[package]]
 name = "earthengine-api"
-version = "1.7.39"
+version = "1.7.40"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -340,9 +340,9 @@ dependencies = [
     { name = "httplib2" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/be/10ac002e6633d89bcd15cd44081b2bcc040806246b5e70532ab1d16e7255/earthengine_api-1.7.39.tar.gz", hash = "sha256:4e7e69433d1d0b3f0af44d2778722ab81379ae8f49c22c77daabc8111b17d190", size = 433529, upload-time = "2026-08-10T22:17:15.125Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ca/d7/8d221e4340ce04a40e3ac93fc552ebc3d29591b192e3d79619dd998d73f9/earthengine_api-1.7.40.tar.gz", hash = "sha256:71ba5a0380f31bd4e3d078f5660a26cabd27cca5a985c2fb8f9cd1ef42c41cef", size = 434503, upload-time = "2026-08-17T20:43:59.576Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/12/f84a78f73080061a882ac2bf2d3d650713d8dad775e86b84b6df490a4618/earthengine_api-1.7.39-py3-none-any.whl", hash = "sha256:357033d4afef5c14543aaf496c43c1abb69fd578af2c9445c9194183f6988a91", size = 480684, upload-time = "2026-08-10T22:17:13.559Z" },
+    { url = "https://files.pythonhosted.org/packages/82/79/3fb569d9fb7ef23a98ffe9238e75183a3c669aac3b8154cd5a7db81b251a/earthengine_api-1.7.40-py3-none-any.whl", hash = "sha256:4d2ed4cf7b35810bd7245a6a0a5de0477e212ad29da45ddaa3d1662256c46a55", size = 481542, upload-time = "2026-08-17T20:43:58.023Z" },
 ]
 
 [[package]]
